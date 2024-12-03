@@ -1,0 +1,33 @@
+//@version=5
+strategy("Optimize Edilmiş Basit Strateji", overlay=true, pyramiding=2)
+
+// === Parametreler ===
+fast_length = input.int(1, title="Hızlı MA Periyodu", minval=1)
+slow_length = input.int(2, title="Yavaş MA Periyodu", minval=1)
+stop_loss = input.float(3.0, title="Stop Loss (%)", step=0.1)  // %3
+take_profit = input.float(4.0, title="Take Profit (%)", step=0.1)  // %4
+
+// Hareketli Ortalamalar
+fast_ma = ta.sma(close, fast_length)
+slow_ma = ta.sma(close, slow_length)
+
+// Al-Sat Koşulları
+long_condition = ta.crossover(fast_ma, slow_ma)
+short_condition = ta.crossunder(fast_ma, slow_ma)
+
+// Al-Sat İşlemleri
+if (long_condition)
+    strategy.entry("Buy", strategy.long, comment="BUY")
+    strategy.exit("Exit Buy", "Buy", 
+                  stop=strategy.position_avg_price * (1 - stop_loss / 100), 
+                  limit=strategy.position_avg_price * (1 + take_profit / 100))
+
+if (short_condition)
+    strategy.entry("Sell", strategy.short, comment="SELL")
+    strategy.exit("Exit Sell", "Sell", 
+                  stop=strategy.position_avg_price * (1 + stop_loss / 100), 
+                  limit=strategy.position_avg_price * (1 - take_profit / 100))
+
+// Hareketli Ortalamalar Çizimi
+plot(fast_ma, color=color.blue, title="Hızlı MA")
+plot(slow_ma, color=color.red, title="Yavaş MA")
